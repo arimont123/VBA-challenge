@@ -6,36 +6,33 @@ Sub stockgenerator():
     Dim percent_change As Double
     Dim summary As Integer
     Dim days As Integer
-    
-    days = 0 'Number of days each ticker has data for
-    summary = 2 'Start outputting results on second row
-    volume = 0 'Start counting volume of stocks at zero
+    days = 0 'Counts number of days each ticker had values for 
+    volume = 0
     
     For Each ws In Worksheets
     ws.Activate
     lastrow = ws.Cells(Rows.Count, 1).End(xlUp).Row
     sumrow = ws.Cells(Rows.Count, 9).End(xlUp).Row
+    summary = 2 'Start printing out summary table on second row for each ws
         For i = 2 To lastrow
             If ws.Cells(i, 1).Value <> ws.Cells(i + 1, 1).Value Then
                 ticker = ws.Cells(i, 1).Value
                 open_price = ws.Cells(i - days, 3).Value
                 close_price = ws.Cells(i, 6).Value
                 yearly_change = close_price - open_price
-                'Fixes divide by zero problem
-                If open_price = 0 Then
+                'Fixes divide by zero error
+		If open_price = 0 Then
                     percent_change = 0
                 Else
                     percent_change = (close_price - open_price) / open_price
                 End If
                 volume = volume + ws.Cells(i, 7).Value
-                
-                'Outputs solutions into columns
-                ws.Cells(summary, 9).Value = ticker
-                ws.Cells(summary, 10).Value = yearly_change
-                ws.Cells(summary, 11).Value = Format(percent_change, "Percent")
-                ws.Cells(summary, 12).Value = volume
-                
-                summary = summary + 1 'Add a row for the next ticker summary
+                'Outputs summary per ticker into columns
+                ws.Range("I" & summary).Value = ticker
+                ws.Range("J" & summary).Value = yearly_change
+                ws.Range("K" & summary).Value = Format(percent_change, "Percent")
+                ws.Range("L" & summary).Value = volume
+                summary = summary + 1 'Move on to next row to print values for next ticker
                 volume = 0
                 days = 0
             Else
@@ -56,14 +53,12 @@ Sub stockgenerator():
         tick_min_per = ""
         tick_vol = ""
         For j = 2 To sumrow
-            'Changes the color of percent change
             If ws.Cells(j, 10).Value > 0 Then
                 ws.Cells(j, 10).Interior.ColorIndex = 4
             Else
                 ws.Cells(j, 10).Interior.ColorIndex = 3
             End If
-            'Finds max and min
-            If ws.Cells(j, 11).Value > max_percent Then
+            If Cells(j, 11).Value > max_percent Then
                 max_percent = ws.Cells(j, 11).Value
                 tick_max_per = ws.Cells(j, 9).Value
             End If
@@ -75,8 +70,9 @@ Sub stockgenerator():
                 max_vol = ws.Cells(j, 12).Value
                 tick_vol = ws.Cells(j, 9).Value
             End If
+
         Next j
-        'Populates max,min table
+       'Populates max,min table
         ws.Cells(2, 15).Value = Format(max_percent, "Percent")
         ws.Cells(2, 14).Value = tick_max_per
         ws.Cells(3, 15).Value = Format(min_percent, "Percent")
@@ -88,5 +84,6 @@ Sub stockgenerator():
         ws.Cells(2, 13).Value = "Greatest % Increase"
         ws.Cells(3, 13).Value = "Greatest % Decrease"
         ws.Cells(4, 13).Value = "Greatest Total Volume"
+
     Next ws
 End Sub
