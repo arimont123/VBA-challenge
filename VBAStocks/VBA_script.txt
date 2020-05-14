@@ -1,0 +1,89 @@
+Sub stockgenerator():
+    Dim ticker As String
+    Dim open_price As Double
+    Dim close_price As Double
+    Dim volume As Double
+    Dim percent_change As Double
+    Dim summary As Integer
+    Dim days As Integer
+    days = 0 'Counts number of days each ticker had values for 
+    volume = 0
+    
+    For Each ws In Worksheets
+    ws.Activate
+    lastrow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+    sumrow = ws.Cells(Rows.Count, 9).End(xlUp).Row
+    summary = 2 'Start printing out summary table on second row for each ws
+        For i = 2 To lastrow
+            If ws.Cells(i, 1).Value <> ws.Cells(i + 1, 1).Value Then
+                ticker = ws.Cells(i, 1).Value
+                open_price = ws.Cells(i - days, 3).Value
+                close_price = ws.Cells(i, 6).Value
+                yearly_change = close_price - open_price
+                'Fixes divide by zero error
+		If open_price = 0 Then
+                    percent_change = 0
+                Else
+                    percent_change = (close_price - open_price) / open_price
+                End If
+                volume = volume + ws.Cells(i, 7).Value
+                'Outputs summary per ticker into columns
+                ws.Range("I" & summary).Value = ticker
+                ws.Range("J" & summary).Value = yearly_change
+                ws.Range("K" & summary).Value = Format(percent_change, "Percent")
+                ws.Range("L" & summary).Value = volume
+                summary = summary + 1 'Move on to next row to print values for next ticker
+                volume = 0
+                days = 0
+            Else
+                volume = volume + ws.Cells(i, 7).Value
+                days = days + 1
+            End If
+        Next i
+        'Populates labels for first row on summary table
+        ws.Cells(1, 9).Value = "Ticker"
+        ws.Cells(1, 10).Value = "Yearly Change"
+        ws.Cells(1, 11).Value = "Percent Change"
+        ws.Cells(1, 12).Value = "Total Stock Volume"
+        'Challenge: find max percent, min percent, and greatest vol
+        max_percent = 0
+        min_percent = 0
+        max_vol = 0
+        tick_max_per = ""
+        tick_min_per = ""
+        tick_vol = ""
+        For j = 2 To sumrow
+            If ws.Cells(j, 10).Value > 0 Then
+                ws.Cells(j, 10).Interior.ColorIndex = 4
+            Else
+                ws.Cells(j, 10).Interior.ColorIndex = 3
+            End If
+            If Cells(j, 11).Value > max_percent Then
+                max_percent = ws.Cells(j, 11).Value
+                tick_max_per = ws.Cells(j, 9).Value
+            End If
+            If ws.Cells(j, 11).Value < min_percent Then
+                min_percent = ws.Cells(j, 11).Value
+                tick_min_per = ws.Cells(j, 9).Value
+            End If
+            If ws.Cells(j, 12).Value > max_vol Then
+                max_vol = ws.Cells(j, 12).Value
+                tick_vol = ws.Cells(j, 9).Value
+            End If
+
+        Next j
+       'Populates max,min table
+        ws.Cells(2, 15).Value = Format(max_percent, "Percent")
+        ws.Cells(2, 14).Value = tick_max_per
+        ws.Cells(3, 15).Value = Format(min_percent, "Percent")
+        ws.Cells(3, 14).Value = tick_min_per
+        ws.Cells(4, 15).Value = max_vol
+        ws.Cells(4, 14).Value = tick_vol
+        ws.Cells(1, 14).Value = "Ticker"
+        ws.Cells(1, 15).Value = "Value"
+        ws.Cells(2, 13).Value = "Greatest % Increase"
+        ws.Cells(3, 13).Value = "Greatest % Decrease"
+        ws.Cells(4, 13).Value = "Greatest Total Volume"
+
+    Next ws
+End Sub
